@@ -1,10 +1,10 @@
-
 FROM python:3.8.13
 RUN pip install --user psycopg2-binary==2.9.9
 RUN pip install 'apache-airflow[postgres]==2.9.2' --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.2/constraints-3.8.txt"
 RUN pip install boto3
-RUN pip install zipfile
 RUN pip install polars
+RUN pip install adbc_driver_manager
+RUN pip install adbc-driver-postgresql pyarrow
 
 WORKDIR /usr/local/airflow
 ENV AIRFLOW_HOME=/usr/local/airflow
