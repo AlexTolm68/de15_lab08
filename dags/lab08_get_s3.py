@@ -21,7 +21,7 @@ def lab08():
     @task
     def grab_s3_data():
         data_objects = ['browser_events.jsonl', 'device_events.jsonl', 'geo_events.jsonl', 'location_events.jsonl']
-        postgresql_conn = 'postgresql://nplstudent:newprolab@10.0.35.17:5438/de15_lab08'
+        postgresql_conn = 'postgresql://nplstudent:newprolab@postgres-db:5432/de15_lab08'
         context = get_current_context()
         start = context["data_interval_start"]
         #maybe put lab imports here so scheduler to feel better
