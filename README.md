@@ -1,5 +1,49 @@
 # de15_lab08
 
+## Запуск  docker-compose stek posgresql-airflow-superset
+
+```
+docker compose --env-file=env.cfg -f docker-compose-non-dev.yml -f docker-compose-airflow-posgres.yml up -d
+``` 
+- docker-compose-non-dev.yml - superset
+- docker-compose-airflow-posgres.yml - airflow, posgres_db
+
+Параметры конфигурации, логины и пароли необходимо передовать в в файле env.cfg
+
+## Остановка docker-compose
+
+```
+docker compose -f docker-compose-non-dev.yml -f docker-compose-airflow-posgres.yml stop
+``` 
+Добавить admin пользователя AirFlow, инструкция находится ниже.
+
+
+Все переменные для окружения AirFlow и Posgres находятся в файле env.cfg в корневой директории.
+
+Dockerfile для airflow, posgresql, а также ДАГи  расположены в директории /airflow
+
+В любой директории выполнить
+```
+git clone https://github.com/apache/superset
+```
+Затем скопировать все файлы из папки superset в корневую директорию проекта de15_lab08
+
+# рекомендуем вам переключиться на стабильный релиз
+# найти их можно тут: https://github.com/apache/superset/tags
+# например, на 4.0.1:
+
+```
+git checkout 4.0.1
+```
+
+Создать файл и добавить зависимости
+```
+touch ./docker/requirements-local.txt
+echo "psycopg2-binary" >> ./docker/requirements-local.txt
+```
+
+___________________________________________________________________________________________
+
 Пока все в упрощенном виде в попытке скорее всем обеспечить доступ к полному набору данных.
 
 Что сейчас есть:

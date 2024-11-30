@@ -1,16 +1,20 @@
 
 FROM python:3.8.13
-RUN pip install --user psycopg2-binary==2.9.9
-RUN pip install 'apache-airflow[postgres]==2.9.2' --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.9.2/constraints-3.8.txt"
-RUN pip install boto3
-RUN pip install zipfile
-RUN pip install polars
+
+COPY ./requirements.txt /usr/local/airflow/requirements.txt
 
 WORKDIR /usr/local/airflow
+
+RUN pip install --upgrade pip
+RUN  pip install --user -r requirements.txt
+
+RUN mkdir -p /usr/local/airflow/dags
+
 ENV AIRFLOW_HOME=/usr/local/airflow
 ENV PATH=/root/.local/bin:$PATH
-RUN mkdir -p /user/local/airflow/dags
-COPY dags/* /user/local/airflow/dags/
+
+COPY airflow.cfg /usr/local/airflow/airflow.cfg
+COPY ./dags/* /usr/local/airflow/dags/
 
 # меняем тип эксзекутора для Airflow на LocalExecutor (запускает задачи параллельно, но только на одной машине)
 ENV AIRFLOW__CORE__EXECUTOR=LocalExecutor
@@ -25,5 +29,4 @@ ENV AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS=False
 ENV AIRFLOW__CORE__EXPOSE_HOSTNAME=True
 # отображать трассировку стека при возникновении ошибки
 ENV AIRFLOW__CORE__EXPOSE_STACKTRACE=True
-#secret
-ENV AIRFLOW__WEBSERVER__SECRET_KEY='imverysecureguy'
+

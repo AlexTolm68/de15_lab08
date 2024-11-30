@@ -7,40 +7,45 @@ services:
       - POSTGRES_PASSWORD=airflow
       - POSTGRES_DB=airflow
     ports:
-      - "5432:5432"
-      - "8123:8123"
-      - "9000:9000"
+      - "5436:5432"
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
 
+
   airflow-initdb:
-    build: .
+    build: ./airflow
     depends_on:
       - postgres
     entrypoint: airflow db migrate && airflow connections create-default-connections
 
+
   airflow-webserver:
-    build: .
+    build: ./airflow
     restart: always
     depends_on:
       - postgres
     volumes:
-      - ./dags:/usr/local/airflow/dags
+      - ./airflow/dags:/usr/local/airflow/dags
     ports:
       - "8082:8080"
+    env_file:
+      - env.cfg
     entrypoint: airflow webserver
 
   airflow-scheduler:
-    build: .
+    build: ./airflow
     restart: always
     depends_on:
       - postgres
     volumes:
-      - ./dags:/usr/local/airflow/dags
+      - ./airflow/dags:/usr/local/airflow/dags
+    env_file:
+      - env.cfg
     entrypoint: airflow scheduler
 
   postgres-db:
     image: postgres:16-bookworm
+    container_name: "postgres_db"
     command:
       - "postgres"
       - "-c"
@@ -71,11 +76,13 @@ services:
       - "pg_stat_statements.max=10000"
       - "-c"
       - "pg_stat_statements.track=all"
-    environment:
-      POSTGRES_DB: "de15_lab08"
-      POSTGRES_USER: "nplstudent"
-      POSTGRES_PASSWORD: "newprolab"
-      PGDATA: "/var/lib/postgresql/data/pgdata"
+    env_file:
+      - env.cfg
+    # environment:
+    #   POSTGRES_DB: $POSTGRES_DB_DB
+    #   POSTGRES_USER: $POSTGRES_USER_DB
+    #   POSTGRES_PASSWORD: $POSTGRES_PASSWORD_DB
+    #   PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
       - ../2. Init Database:/docker-entrypoint-initdb.d
       - de15_lab08-data:/var/lib/postgresql/data
@@ -96,3 +103,5 @@ services:
 
 volumes:
   de15_lab08-data:
+
+
