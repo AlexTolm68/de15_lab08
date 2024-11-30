@@ -22,7 +22,7 @@ docker compose -f docker-compose-non-dev.yml -f docker-compose-airflow-posgres.y
 
 Dockerfile для airflow, posgresql, а также ДАГи  расположены в директории /airflow
 
-## Добавить файлы Superset и файл docker-compose-non-dev.yml необходимо
+## Добавить файлы Superset и файл docker-compose-non-dev.yml необходимо:
 
 В любой директории выполнить
 ```
