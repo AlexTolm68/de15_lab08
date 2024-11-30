@@ -28,9 +28,9 @@ git clone https://github.com/apache/superset
 ```
 Затем скопировать все файлы из папки superset в корневую директорию проекта de15_lab08
 
-# рекомендуем вам переключиться на стабильный релиз
-# найти их можно тут: https://github.com/apache/superset/tags
-# например, на 4.0.1:
+рекомендуем вам переключиться на стабильный релиз
+найти их можно тут: https://github.com/apache/superset/tags
+например, на 4.0.1:
 
 ```
 git checkout 4.0.1
