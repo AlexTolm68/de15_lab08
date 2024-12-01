@@ -35,10 +35,10 @@ dag = DAG(
     catchup=False,
 )
 
-wait_of_browser_events = ExternalTaskSensor(external_dag_id="lab08_browser_events", external_task_id="grab_s3_data")
-wait_of_device_events = ExternalTaskSensor(external_dag_id="lab08_device_events", external_task_id="grab_s3_data")
-wait_of_geo_events = ExternalTaskSensor(external_dag_id="lab08_geo_events", external_task_id="grab_s3_data")
-wait_of_location_events = ExternalTaskSensor(external_dag_id="lab08_location_events", external_task_id="grab_s3_data")
+wait_of_browser_events = ExternalTaskSensor(task_id="wait_of_browser_events", external_dag_id="lab08_browser_events")
+wait_of_device_events = ExternalTaskSensor(task_id="wait_of_device_events",external_dag_id="lab08_device_events")
+wait_of_geo_events = ExternalTaskSensor(task_id="wait_of_geo_events",external_dag_id="lab08_geo_events")
+wait_of_location_events = ExternalTaskSensor(task_id="wait_of_location_events",external_dag_id="lab08_location_events")
 
 buy_product_update = PythonOperator(
     task_id='buy_product_update',
