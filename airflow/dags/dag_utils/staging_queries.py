@@ -20,7 +20,8 @@ def staging_update_query(execution_date):
             DELETE FROM public.stg_browser_events
             WHERE event_timestamp >= '{execution_date}'
                 AND event_timestamp < CAST('{execution_date}' AS timestamp) + INTERVAL '1' HOUR;
-        
+                
+            INSERT INTO public.stg_browser_events
             WITH
               data_truncate AS (
                 SELECT
