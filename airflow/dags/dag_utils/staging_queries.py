@@ -47,4 +47,6 @@ def staging_update_query(execution_date):
     FROM data_truncate
     WHERE rn = 1
     ;
+
+    COMMIT;
 """
