@@ -13,6 +13,14 @@ DEFAULT_ARGS = {"owner": "lab08_team"}
 
 CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_DATABASE}'  # 5432 внутри
 
+create_buy_product_table = """
+CREATE TABLE IF NOT EXISTS public.dm_buy_product_table (
+  click_id TEXT NOT NULL,
+  user_custom_id VARCHAR NOT NULL,
+  page_url_path TEXT NOT NULL,
+  event_timestamp TIMESTAMP NOT NULL
+);
+"""
 
 # query Покупка товаров
 buy_product_query = """
@@ -88,7 +96,9 @@ def postgres_execute_query(query: str, execution_date: str) -> None:
 
 
 def execute_sql_buy_product_update(**kwargs):
+    postgres_execute_query(create_buy_product_table, '')
     postgres_execute_query(buy_product_query, kwargs['execution_date'])
+    print(kwargs['execution_date'])
 
 
 dag = DAG(
