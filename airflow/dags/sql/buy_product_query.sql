@@ -20,7 +20,7 @@ WITH
     FROM public.location_events l
     LEFT OUTER JOIN public.browser_events be ON l.event_id = be.event_id
     LEFT OUTER JOIN public.device_events de ON be.click_id = de.click_id
-    WHERE date_trunc('hour', CAST(event_timestamp AS timestamp)) = '{{ ds }}'  -- for jinja {{ date_hour }}
+    WHERE date_trunc('hour', CAST(event_timestamp AS timestamp)) = '{{ ds }}'  -- for jinja
     ORDER BY event_timestamp),
 
   next_url_path_data AS (
