@@ -21,7 +21,7 @@ CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_
 # Define the connection details
 postgres_conn_id = 'postgres_conn'
 conn_type = 'postgres'
-host = 'postgres-db'
+host = '87.239.109.248'
 login = PG_USER
 password = PG_PASSWORD
 schema = PG_DATABASE
