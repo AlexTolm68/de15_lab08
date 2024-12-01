@@ -14,7 +14,7 @@ def create_stg_browser_events_table():
 
 
 def staging_update_query(execution_date):
-    """
+    f"""
     BEGIN;
 
     DELETE FROM public.stg_browser_events
