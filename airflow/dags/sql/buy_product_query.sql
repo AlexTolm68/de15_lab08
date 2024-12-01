@@ -3,11 +3,11 @@
 
 --BEGIN;
 --
---DELETE FROM buy_product_table
+--DELETE FROM dm_buy_product_table
 --WHERE event_timestamp >= '{{ date_hour }}'
 --    AND event_timestamp < '{{ date_hour }}' + INTERVAL 1 HOUR;
 
-INSERT INTO buy_product_table
+INSERT INTO dm_buy_product_table
 -- query proto
 WITH
   merged_data AS (
