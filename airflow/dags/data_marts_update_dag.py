@@ -2,7 +2,9 @@ import os
 import psycopg2
 import pendulum
 from airflow import DAG
+from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
+from airflow.sensors.external_task import ExternalTaskSensor
 from dag_utils.data_marts_queries import create_buy_product_table, buy_product_query
 
 
@@ -33,6 +35,11 @@ dag = DAG(
     catchup=False,
 )
 
+wait_of_browser_events = ExternalTaskSensor(external_dag_id="lab08_browser_events")
+wait_of_device_events = ExternalTaskSensor(external_dag_id="lab08_device_events")
+wait_of_geo_events = ExternalTaskSensor(external_dag_id="lab08_geo_events")
+wait_of_location_events = ExternalTaskSensor(external_dag_id="lab08_location_events")
+
 buy_product_update = PythonOperator(
     task_id='buy_product_update',
     python_callable=execute_sql_buy_product_update,
@@ -40,4 +47,19 @@ buy_product_update = PythonOperator(
     dag=dag
 )
 
-buy_product_update
+start = EmptyOperator(task_id="start")
+wait_for_dependencies = EmptyOperator(task_id="wait_for_dependencies")
+completed = EmptyOperator(task_id="completed")
+
+(
+    start
+    >> [
+        wait_of_browser_events,
+        wait_of_device_events,
+        wait_of_geo_events,
+        wait_of_location_events,
+    ]
+    >> wait_for_dependencies
+    >> buy_product_update
+    >> completed
+)
