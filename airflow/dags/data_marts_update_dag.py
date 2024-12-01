@@ -21,7 +21,7 @@ CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_
 # Define the connection details
 postgres_conn_id = 'postgres_conn'
 conn_type = 'postgres'
-host = 'localhost'
+host = 'postgres-db'
 login = PG_USER
 password = PG_PASSWORD
 schema = PG_DATABASE
@@ -167,7 +167,7 @@ dag = DAG(
 
 buy_product_update = PostgresOperator(
     task_id='buy_product_update',
-    postgres_conn_id=CONNECTION_STRING,
+    postgres_conn_id=postgres_conn_id,
     sql='sql/buy_product_query.sql',
     autocommit=True,
     dag=dag
