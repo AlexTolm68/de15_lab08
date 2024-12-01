@@ -27,41 +27,39 @@ def execute_sql_buy_product_update(**kwargs):
     postgres_execute_query(buy_product_query(kwargs['execution_date']))
 
 
-dag = DAG(
+with DAG(
     dag_id='data_marts_dag',
     default_args=DEFAULT_ARGS,
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
     catchup=False,
-)
+) as dag:
 
-wait_of_browser_events = ExternalTaskSensor(
-    task_id="wait_of_browser_events", external_dag_id="lab08_browser_events", external_task_id="grab_s3_data"
-)
-wait_of_device_events = ExternalTaskSensor(
-    task_id="wait_of_device_events", external_dag_id="lab08_device_events", external_task_id="grab_s3_data"
-)
-wait_of_geo_events = ExternalTaskSensor(
-    task_id="wait_of_geo_events", external_dag_id="lab08_geo_events", external_task_id="grab_s3_data"
-)
-wait_of_location_events = ExternalTaskSensor(
-    task_id="wait_of_location_events", external_dag_id="lab08_location_events", external_task_id="grab_s3_data"
-)
+    wait_of_browser_events = ExternalTaskSensor(
+        task_id="wait_of_browser_events", external_dag_id="lab08_browser_events", external_task_id="grab_s3_data"
+    )
+    wait_of_device_events = ExternalTaskSensor(
+        task_id="wait_of_device_events", external_dag_id="lab08_device_events", external_task_id="grab_s3_data"
+    )
+    wait_of_geo_events = ExternalTaskSensor(
+        task_id="wait_of_geo_events", external_dag_id="lab08_geo_events", external_task_id="grab_s3_data"
+    )
+    wait_of_location_events = ExternalTaskSensor(
+        task_id="wait_of_location_events", external_dag_id="lab08_location_events", external_task_id="grab_s3_data",
+    )
 
-buy_product_update = PythonOperator(
-    task_id='buy_product_update',
-    python_callable=execute_sql_buy_product_update,
-    provide_context=True,
-    dag=dag
-)
+    buy_product_update = PythonOperator(
+        task_id='buy_product_update',
+        python_callable=execute_sql_buy_product_update,
+        provide_context=True,
+    )
 
-start = EmptyOperator(task_id="start")
-wait_for_dependencies = EmptyOperator(task_id="wait_for_dependencies")
-completed = EmptyOperator(task_id="completed")
+    start = EmptyOperator(task_id="start")
+    wait_for_dependencies = EmptyOperator(task_id="wait_for_dependencies")
+    completed = EmptyOperator(task_id="completed")
 
-
-start >> wait_of_browser_events >> wait_for_dependencies
-start >> wait_of_device_events >> wait_for_dependencies
-start >> wait_of_geo_events >> wait_for_dependencies
-start >> wait_of_location_events >> wait_for_dependencies
-wait_for_dependencies >> buy_product_update >> completed
+    start >> wait_of_browser_events >> wait_for_dependencies
+    start >> wait_of_device_events >> wait_for_dependencies
+    start >> wait_of_geo_events >> wait_for_dependencies
+    start >> wait_of_location_events >> wait_for_dependencies
+    wait_for_dependencies >> buy_product_update >> completed
