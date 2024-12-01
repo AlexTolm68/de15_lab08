@@ -52,9 +52,8 @@ wait_for_dependencies = EmptyOperator(task_id="wait_for_dependencies")
 completed = EmptyOperator(task_id="completed")
 
 
-start >> [
-    wait_of_browser_events,
-    wait_of_device_events,
-    wait_of_geo_events,
-    wait_of_location_events,
-] >> wait_for_dependencies >> buy_product_update >> completed
+start >> wait_of_browser_events >> wait_for_dependencies
+start >> wait_of_device_events >> wait_for_dependencies
+start >> wait_of_geo_events >> wait_for_dependencies
+start >> wait_of_location_events >> wait_for_dependencies
+wait_for_dependencies >> buy_product_update >> completed
