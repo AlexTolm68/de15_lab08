@@ -148,7 +148,7 @@ dag = DAG(
 buy_product_update = PostgresOperator(
     task_id='buy_product_update',
     postgres_conn_id=postgres_conn_id,
-    sql='sql/buy_product_query.sql',
+    sql='airflow/dags/sql/buy_product_query.sql',
     autocommit=True,
     dag=dag
 )
