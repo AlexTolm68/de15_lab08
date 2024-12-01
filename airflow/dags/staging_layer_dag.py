@@ -28,7 +28,7 @@ def execute_sql_stg_table_update(**kwargs):
 
 
 with DAG(
-    dag_id='data_marts_dag',
+    dag_id='staging_layer',
     default_args=DEFAULT_ARGS,
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
