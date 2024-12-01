@@ -11,3 +11,17 @@
     ```
     docker ps -a
     ```
+  
+- если при загрузке данных даги падают с ошибкой:
+  ```
+  ModuleNotFoundError: required package 'adbc_driver_manager' not found.
+  ```
+  Зайдите в ваши airflow-scheduler и airflow-webserver в интерактивном режиме:
+  ```
+  docker exec -it container_id bash
+  ```
+  и пропишите поочередно команды:
+  ```
+  pip install adbc_driver_manager
+  pip install adbc-driver-postgresql pyarrow
+  ```

@@ -8,7 +8,7 @@ docker compose --env-file=env.cfg -f docker-compose-non-dev.yml -f docker-compos
 - docker-compose-non-dev.yml - superset
 - docker-compose-airflow-posgres.yml - airflow, posgres_db
 
-Параметры конфигурации, логины и пароли необходимо передовать в в файле env.cfg
+Параметры конфигурации, логины и пароли необходимо передовать в файле env.cfg
 
 ## Остановка docker-compose
 
