@@ -20,7 +20,7 @@ BEGIN;
 
 DELETE FROM public.dm_buy_product_table
 WHERE event_timestamp >= '2024-11-16 13:00:00'
-    AND CAST('2024-11-16 13:00:00' AS timestamp) + INTERVAL '1' HOUR;
+    AND event_timestamp < CAST('2024-11-16 13:00:00' AS timestamp) + INTERVAL '1' HOUR;
 
 INSERT INTO public.dm_buy_product_table
 -- query proto
