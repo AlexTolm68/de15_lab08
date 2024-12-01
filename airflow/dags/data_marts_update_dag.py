@@ -2,12 +2,8 @@ import os
 import psycopg2
 import pendulum
 from airflow import DAG
-from airflow.hooks.base import BaseHook
 from airflow.operators.python import PythonOperator
-from airflow.providers.postgres.operators.postgres import PostgresOperator
-from airflow.sensors.external_task import ExternalTaskSensor
-from airflow.models import Connection
-from airflow.settings import Session
+from dag_utils.data_marts_queries import create_buy_product_table, buy_product_query
 
 
 PG_USER = os.environ["POSTGRES_USER"]
@@ -18,123 +14,83 @@ DEFAULT_ARGS = {"owner": "lab08_team"}
 CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_DATABASE}'  # 5432 внутри
 
 
-# # Define the connection details
-# postgres_conn_id = 'postgres_conn'
-# conn_type = 'postgres'
-# host = 'postgres-db'
-# login = PG_USER
-# password = PG_PASSWORD
-# schema = PG_DATABASE
-# port = 5432
+# create_buy_product_table = """
+# CREATE TABLE IF NOT EXISTS public.dm_buy_product_table (
+#   click_id TEXT NOT NULL,
+#   user_custom_id VARCHAR NOT NULL,
+#   page_url_path TEXT NOT NULL,
+#   event_timestamp TIMESTAMP NOT NULL
+# );
+# """
 #
 #
-# # Create a connection dynamically (this is not recommended for production due to security risks)
-# conn = Connection(
-#     conn_id=postgres_conn_id,
-#     conn_type=conn_type,
-#     host=host,
-#     login=login,
-#     password=password,
-#     schema=schema,
-#     port=port
-# )
+# def buy_product_query(execution_date):
 #
+#     # query Покупка товаров
+#     return f"""
+#     BEGIN;
 #
-# def add_connection():
-#     session = Session()
-#     try:
-#         # Check if connection already exists
-#         existing_conn = session.query(Connection).filter(Connection.conn_id == postgres_conn_id).first()
-#         if not existing_conn:
-#             session.add(conn)
-#             session.commit()
-#     finally:
-#         session.close()
+#     DELETE FROM public.dm_buy_product_table
+#     WHERE event_timestamp >= '{execution_date}'
+#         AND event_timestamp < CAST('{execution_date}' AS timestamp) + INTERVAL '1' HOUR;
 #
+#     INSERT INTO public.dm_buy_product_table
+#     -- query proto
+#     WITH
+#       merged_data AS (
+#         SELECT
+#           l.event_id,
+#           be.click_id,
+#           de.user_custom_id,
+#           page_url_path,
+#           be.event_timestamp::timestamp AS event_timestamp,
+#           -- for deduplication
+#           row_number() OVER (PARTITION BY l.event_id, be.click_id, de.user_custom_id,
+#                                           page_url_path, be.event_timestamp, event_type) AS rn
+#         FROM public.location_events l
+#         LEFT OUTER JOIN public.browser_events be ON l.event_id = be.event_id
+#         LEFT OUTER JOIN public.device_events de ON be.click_id = de.click_id
+#         WHERE date_trunc('hour', CAST(event_timestamp AS timestamp)) = '{execution_date}'  -- for jinja
+#         ORDER BY event_timestamp),
 #
-# add_connection()
-
-# # Add the connection to Airflow's connection store
-# BaseHook.get_connection(conn)  # Make sure the connection is added to Airflow's store
-
-
-create_buy_product_table = """
-CREATE TABLE IF NOT EXISTS public.dm_buy_product_table (
-  click_id TEXT NOT NULL,
-  user_custom_id VARCHAR NOT NULL,
-  page_url_path TEXT NOT NULL,
-  event_timestamp TIMESTAMP NOT NULL
-);
-"""
-
-
-def buy_product_query(execution_date):
-
-    # query Покупка товаров
-    return f"""
-    BEGIN;
-    
-    DELETE FROM public.dm_buy_product_table
-    WHERE event_timestamp >= '{execution_date}'
-        AND event_timestamp < CAST('{execution_date}' AS timestamp) + INTERVAL '1' HOUR;
-    
-    INSERT INTO public.dm_buy_product_table
-    -- query proto
-    WITH
-      merged_data AS (
-        SELECT
-          l.event_id,
-          be.click_id,
-          de.user_custom_id,
-          page_url_path,
-          be.event_timestamp::timestamp AS event_timestamp,
-          -- for deduplication
-          row_number() OVER (PARTITION BY l.event_id, be.click_id, de.user_custom_id,
-                                          page_url_path, be.event_timestamp, event_type) AS rn
-        FROM public.location_events l
-        LEFT OUTER JOIN public.browser_events be ON l.event_id = be.event_id
-        LEFT OUTER JOIN public.device_events de ON be.click_id = de.click_id
-        WHERE date_trunc('hour', CAST(event_timestamp AS timestamp)) = '{execution_date}'  -- for jinja
-        ORDER BY event_timestamp),
-    
-      next_url_path_data AS (
-        SELECT
-          event_id,
-          click_id,
-          user_custom_id,
-          page_url_path,
-          -- to see is product was added to cart
-          LEAD(page_url_path) OVER (PARTITION BY click_id, user_custom_id ORDER BY event_timestamp) AS next_url_path,
-          event_timestamp
-        FROM merged_data
-        WHERE rn = 1
-        ),
-    
-      product_buy_chain AS (
-        SELECT
-          click_id,
-          user_custom_id,
-          page_url_path,
-          next_url_path,
-          event_timestamp,
-          -- to check if added products were successfully bought with confirmation
-          MAX(CASE WHEN next_url_path = '/confirmation' THEN 1 ELSE 0 END)
-            OVER (PARTITION BY click_id) AS has_confirmation
-        FROM next_url_path_data
-        WHERE next_url_path IN ('/cart', '/payment', '/confirmation') OR page_url_path = '/confirmation')
-    
-    SELECT
-      click_id,
-      user_custom_id,
-      page_url_path,
-      event_timestamp::timestamp(0) AS event_timestamp
-    FROM product_buy_chain
-    WHERE page_url_path LIKE '/product_%'
-      AND has_confirmation = 1
-    ;
-    
-    COMMIT;
-    """
+#       next_url_path_data AS (
+#         SELECT
+#           event_id,
+#           click_id,
+#           user_custom_id,
+#           page_url_path,
+#           -- to see is product was added to cart
+#           LEAD(page_url_path) OVER (PARTITION BY click_id, user_custom_id ORDER BY event_timestamp) AS next_url_path,
+#           event_timestamp
+#         FROM merged_data
+#         WHERE rn = 1
+#         ),
+#
+#       product_buy_chain AS (
+#         SELECT
+#           click_id,
+#           user_custom_id,
+#           page_url_path,
+#           next_url_path,
+#           event_timestamp,
+#           -- to check if added products were successfully bought with confirmation
+#           MAX(CASE WHEN next_url_path = '/confirmation' THEN 1 ELSE 0 END)
+#             OVER (PARTITION BY click_id) AS has_confirmation
+#         FROM next_url_path_data
+#         WHERE next_url_path IN ('/cart', '/payment', '/confirmation') OR page_url_path = '/confirmation')
+#
+#     SELECT
+#       click_id,
+#       user_custom_id,
+#       page_url_path,
+#       event_timestamp::timestamp(0) AS event_timestamp
+#     FROM product_buy_chain
+#     WHERE page_url_path LIKE '/product_%'
+#       AND has_confirmation = 1
+#     ;
+#
+#     COMMIT;
+#     """
 
 
 def postgres_execute_query(query: str) -> None:
@@ -144,9 +100,8 @@ def postgres_execute_query(query: str) -> None:
 
 
 def execute_sql_buy_product_update(**kwargs):
-    postgres_execute_query(create_buy_product_table)
+    postgres_execute_query(create_buy_product_table())
     postgres_execute_query(buy_product_query(kwargs['execution_date']))
-    print(kwargs['execution_date'])
 
 
 dag = DAG(
@@ -167,13 +122,5 @@ buy_product_update = PythonOperator(
     provide_context=True,
     dag=dag
 )
-
-# buy_product_update = PostgresOperator(
-#     task_id='buy_product_update',
-#     postgres_conn_id=postgres_conn_id,
-#     sql='sql/buy_product_query.sql',
-#     autocommit=True,
-#     dag=dag
-# )
 
 buy_product_update
