@@ -149,7 +149,6 @@ buy_product_update = PostgresOperator(
     task_id='buy_product_update',
     postgres_conn_id=postgres_conn_id,
     sql='sql/buy_product_query.sql',
-    provide_context=True,
     autocommit=True,
     dag=dag
 )
