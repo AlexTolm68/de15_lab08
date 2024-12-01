@@ -27,8 +27,8 @@ buy_product_query = """
 BEGIN;
 
 DELETE FROM public.dm_buy_product_table
-WHERE event_timestamp >= '2024-11-16 13:00:00'
-    AND event_timestamp < CAST('2024-11-16 13:00:00' AS timestamp) + INTERVAL '1' HOUR;
+WHERE event_timestamp >= %s
+    AND event_timestamp < CAST(%s AS timestamp) + INTERVAL '1' HOUR;
 
 INSERT INTO public.dm_buy_product_table
 -- query proto
@@ -46,7 +46,7 @@ WITH
     FROM public.location_events l
     LEFT OUTER JOIN public.browser_events be ON l.event_id = be.event_id
     LEFT OUTER JOIN public.device_events de ON be.click_id = de.click_id
-    WHERE date_trunc('hour', CAST(event_timestamp AS timestamp)) = '2024-11-16 13:00:00'  -- for jinja {{ date_hour }}
+    WHERE date_trunc('hour', CAST(event_timestamp AS timestamp)) = %s  -- for jinja {{ date_hour }}
     ORDER BY event_timestamp),
 
   next_url_path_data AS (
