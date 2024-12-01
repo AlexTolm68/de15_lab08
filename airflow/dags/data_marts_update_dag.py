@@ -7,6 +7,7 @@ from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.models import Connection
+from airflow.settings import Session
 
 
 PG_USER = os.environ["POSTGRES_USER"]
@@ -39,11 +40,16 @@ conn = Connection(
 )
 
 
-def add_connection(session=None):
-    existing_conn = session.query(Connection).filter(Connection.conn_id == postgres_conn_id).first()
-    if not existing_conn:
-        session.add(conn)
-        session.commit()
+def add_connection():
+    session = Session()
+    try:
+        # Check if connection already exists
+        existing_conn = session.query(Connection).filter(Connection.conn_id == postgres_conn_id).first()
+        if not existing_conn:
+            session.add(conn)
+            session.commit()
+    finally:
+        session.close()
 
 
 add_connection()
