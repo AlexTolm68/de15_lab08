@@ -38,8 +38,18 @@ conn = Connection(
     port=port
 )
 
-# Add the connection to Airflow's connection store
-BaseHook.get_connection(postgres_conn_id)  # Make sure the connection is added to Airflow's store
+
+def add_connection(session=None):
+    existing_conn = session.query(Connection).filter(Connection.conn_id == postgres_conn_id).first()
+    if not existing_conn:
+        session.add(conn)
+        session.commit()
+
+
+add_connection()
+
+# # Add the connection to Airflow's connection store
+# BaseHook.get_connection(conn)  # Make sure the connection is added to Airflow's store
 
 
 create_buy_product_table = """
