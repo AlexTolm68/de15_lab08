@@ -3,7 +3,9 @@ import psycopg2
 import pendulum
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.sensors.external_task import ExternalTaskSensor
+from airflow.models import Connection
 
 
 PG_USER = os.environ["POSTGRES_USER"]
@@ -12,6 +14,29 @@ PG_DATABASE = os.environ["POSTGRES_DB"]
 DEFAULT_ARGS = {"owner": "lab08_team"}
 
 CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_DATABASE}'  # 5432 внутри
+
+
+# Define the connection details
+postgres_conn_id = 'postgres_conn'
+conn_type = 'postgres'
+host = 'localhost'
+login = PG_USER
+password = PG_PASSWORD
+schema = PG_DATABASE
+port = 5432
+
+
+# Create a connection dynamically (this is not recommended for production due to security risks)
+conn = Connection(
+    conn_id=postgres_conn_id,
+    conn_type=conn_type,
+    host=host,
+    login=login,
+    password=password,
+    schema=schema,
+    port=port
+)
+
 
 create_buy_product_table = """
 CREATE TABLE IF NOT EXISTS public.dm_buy_product_table (
@@ -113,10 +138,19 @@ dag = DAG(
 #     external_dag_id="create_materialized_views"
 # )
 
-buy_product_update = PythonOperator(
+# buy_product_update = PythonOperator(
+#     task_id='buy_product_update',
+#     python_callable=execute_sql_buy_product_update,
+#     provide_context=True,
+#     dag=dag
+# )
+
+buy_product_update = PostgresOperator(
     task_id='buy_product_update',
-    python_callable=execute_sql_buy_product_update,
+    postgres_conn_id=postgres_conn_id,
+    sql='sql/buy_product_query.sql',
     provide_context=True,
+    autocommit=True,
     dag=dag
 )
 
