@@ -167,7 +167,7 @@ dag = DAG(
 
 buy_product_update = PostgresOperator(
     task_id='buy_product_update',
-    postgres_conn_id=postgres_conn_id,
+    postgres_conn_id=CONNECTION_STRING,
     sql='sql/buy_product_query.sql',
     autocommit=True,
     dag=dag
