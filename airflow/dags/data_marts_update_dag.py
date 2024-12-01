@@ -28,7 +28,7 @@ def execute_sql_buy_product_update(**kwargs):
 dag = DAG(
     dag_id='data_marts_dag',
     default_args=DEFAULT_ARGS,
-    schedule_interval="01 * * * *",
+    schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
     catchup=False,
 )
