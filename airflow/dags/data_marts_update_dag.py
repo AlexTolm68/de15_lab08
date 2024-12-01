@@ -2,6 +2,7 @@ import os
 import psycopg2
 import pendulum
 from airflow import DAG
+from airflow.hooks.base import BaseHook
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.sensors.external_task import ExternalTaskSensor
@@ -36,6 +37,9 @@ conn = Connection(
     schema=schema,
     port=port
 )
+
+# Add the connection to Airflow's connection store
+BaseHook.get_connection(postgres_conn_id)  # Make sure the connection is added to Airflow's store
 
 
 create_buy_product_table = """
@@ -147,7 +151,7 @@ dag = DAG(
 
 buy_product_update = PostgresOperator(
     task_id='buy_product_update',
-    postgres_conn_id=conn.postgres_conn_id,
+    postgres_conn_id=postgres_conn_id,
     sql='sql/buy_product_query.sql',
     autocommit=True,
     dag=dag
