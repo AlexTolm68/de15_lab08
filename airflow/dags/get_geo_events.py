@@ -7,8 +7,16 @@ import polars as pl
 import pendulum
 from airflow.decorators import dag, task
 from airflow.operators.python import get_current_context
+import psycopg2
 
-DEFAULT_ARGS = {"owner": "lab08_team", "depends_on_past":True}
+
+DEFAULT_ARGS = {"owner": "lab08_team", "depends_on_past": True}
+
+# PG_USER = os.environ["POSTGRES_USER"]
+# PG_PASSWORD = os.environ["POSTGRES_PASSWORD"]
+# PG_DATABASE = os.environ["POSTGRES_DB"]
+#
+# CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_DATABASE}'  # 5432 внутри
 
 @dag(
     default_args=DEFAULT_ARGS,
@@ -21,6 +29,17 @@ def lab08_geo_events():
 
     @task
     def grab_s3_data():
+
+        def drop_partition_query(execution_date):
+            return f"""DELETE FROM public.geo_events
+                    WHERE data_partition_ts >= '{execution_date}'
+                        AND data_partition_ts < CAST('{execution_date}' AS timestamp) + INTERVAL '1' HOUR;"""
+
+        def postgres_execute_query(query: str, conn) -> None:
+            with psycopg2.connect(conn) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(query)
+
         # maybe put lab imports here so scheduler to feel better
         data_object = 'geo_events.jsonl'
         postgresql_conn = f'postgresql://{os.environ["POSTGRES_USER"]}:{os.environ["POSTGRES_PASSWORD"]}@postgres-db:5432/{os.environ["POSTGRES_DB"]}'
@@ -32,8 +51,8 @@ def lab08_geo_events():
         s3 = session.client(
             service_name='s3',
             endpoint_url='https://storage.yandexcloud.net',
-            aws_access_key_id = os.environ['AWS_SECRET_ID'],
-            aws_secret_access_key = os.environ['AWS_SECRET_KEY']
+            aws_access_key_id=os.environ['AWS_SECRET_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_KEY']
         )
 
         # Получить список объектов в бакете
@@ -62,6 +81,7 @@ def lab08_geo_events():
                             print(pl_json_df)
                             print(f'writing df to postgres: public.{subfile[:-6]}')
                             try:
+                                postgres_execute_query(drop_partition_query(start), postgresql_conn)
                                 pl_json_df.write_database(
                                     table_name=f'public.{subfile[:-6]}',
                                     connection=postgresql_conn,
