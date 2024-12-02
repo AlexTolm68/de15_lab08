@@ -96,7 +96,6 @@ with DAG(
     )
 
     start = EmptyOperator(task_id="start")
-    wait_for_dependencies = EmptyOperator(task_id="wait_for_dependencies")
     completed = EmptyOperator(task_id="completed")
 
     start >> wait_of_browser_events >> raw_browser_events_update >> completed
