@@ -19,7 +19,6 @@ DEFAULT_ARGS = {"owner": "lab08_team", "depends_on_past": True}
     start_date=pendulum.datetime(2024, 11, 15),
     catchup=True,
 )
-
 def lab08_geo_events():
 
     @task
@@ -27,8 +26,8 @@ def lab08_geo_events():
 
         def drop_partition_query(execution_date):
             return f"""DELETE FROM public.geo_events
-                    WHERE data_partition_ts >= '{execution_date}'
-                        AND data_partition_ts < CAST('{execution_date}' AS timestamp) + INTERVAL '1' HOUR;"""
+                        WHERE data_partition_ts >= '{execution_date}'
+                            AND data_partition_ts < CAST('{execution_date}' AS timestamp) + INTERVAL '1' HOUR;"""
 
         def postgres_execute_query(query: str, conn) -> None:
             with psycopg2.connect(conn) as conn:

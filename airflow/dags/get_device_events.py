@@ -7,8 +7,11 @@ import polars as pl
 import pendulum
 from airflow.decorators import dag, task
 from airflow.operators.python import get_current_context
+import psycopg2
 
-DEFAULT_ARGS = {"owner": "lab08_team", "depends_on_past":True}
+
+DEFAULT_ARGS = {"owner": "lab08_team", "depends_on_past": True}
+
 
 @dag(
     default_args=DEFAULT_ARGS,
@@ -16,11 +19,20 @@ DEFAULT_ARGS = {"owner": "lab08_team", "depends_on_past":True}
     start_date=pendulum.datetime(2024, 11, 15),
     catchup=True,
 )
-
 def lab08_device_events():
-
     @task
     def grab_s3_data():
+
+        def drop_partition_query(execution_date):
+            return f"""DELETE FROM public.device_events
+                        WHERE data_partition_ts >= '{execution_date}'
+                            AND data_partition_ts < CAST('{execution_date}' AS timestamp) + INTERVAL '1' HOUR;"""
+
+        def postgres_execute_query(query: str, conn) -> None:
+            with psycopg2.connect(conn) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(query)
+
         # maybe put lab imports here so scheduler to feel better
         data_object = 'device_events.jsonl'
         postgresql_conn = f'postgresql://{os.environ["POSTGRES_USER"]}:{os.environ["POSTGRES_PASSWORD"]}@postgres-db:5432/{os.environ["POSTGRES_DB"]}'
@@ -32,8 +44,8 @@ def lab08_device_events():
         s3 = session.client(
             service_name='s3',
             endpoint_url='https://storage.yandexcloud.net',
-            aws_access_key_id = os.environ['AWS_SECRET_ID'],
-            aws_secret_access_key = os.environ['AWS_SECRET_KEY']
+            aws_access_key_id=os.environ['AWS_SECRET_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_KEY']
         )
 
         # Получить список объектов в бакете
@@ -58,15 +70,17 @@ def lab08_device_events():
                             decoded_json = jsonl_binary.decode('utf-8')
                             print(decoded_json)
                             print('polars time!')
-                            pl_json_df = pl.read_ndjson(io.StringIO(decoded_json)).with_columns(pl.lit(start).alias('data_partition_ts'))
+                            pl_json_df = pl.read_ndjson(io.StringIO(decoded_json)).with_columns(
+                                pl.lit(start).alias('data_partition_ts'))
                             print(pl_json_df)
                             print(f'writing df to postgres: public.{subfile[:-6]}')
                             try:
+                                postgres_execute_query(drop_partition_query(start), postgresql_conn)
                                 pl_json_df.write_database(
                                     table_name=f'public.{subfile[:-6]}',
                                     connection=postgresql_conn,
                                     engine='adbc',
-                                    if_table_exists='replace'
+                                    if_table_exists='append'
                                 )
                             except:
                                 pl_json_df.write_database(
@@ -81,9 +95,7 @@ def lab08_device_events():
             else:
                 raise
 
-
     grab_s3_data()
 
 
 actual_dag = lab08_device_events()
-
