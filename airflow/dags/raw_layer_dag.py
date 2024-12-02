@@ -8,6 +8,12 @@ from airflow.sensors.external_task import ExternalTaskSensor
 from dag_utils.raw_queries import (
     create_raw_browser_events_table,
     raw_browser_events_update_query,
+    create_raw_device_events_table,
+    raw_device_events_update_query,
+    create_raw_geo_events_table,
+    raw_geo_events_update_query,
+    create_raw_location_events_table,
+    raw_location_events_update_query,
 )
 
 PG_USER = os.environ["POSTGRES_USER"]
@@ -24,9 +30,24 @@ def postgres_execute_query(query: str) -> None:
             cur.execute(query)
 
 
-def execute_sql_raw_raw_browser_events_update(**kwargs):
+def execute_sql_raw_browser_events_update(**kwargs):
     postgres_execute_query(create_raw_browser_events_table())
     postgres_execute_query(raw_browser_events_update_query(kwargs['execution_date']))
+
+
+def execute_sql_raw_device_events_update(**kwargs):
+    postgres_execute_query(create_raw_device_events_table())
+    postgres_execute_query(raw_device_events_update_query(kwargs['execution_date']))
+
+
+def execute_sql_raw_geo_events_update(**kwargs):
+    postgres_execute_query(create_raw_geo_events_table())
+    postgres_execute_query(raw_geo_events_update_query(kwargs['execution_date']))
+
+
+def execute_sql_raw_location_events_update(**kwargs):
+    postgres_execute_query(create_raw_location_events_table())
+    postgres_execute_query(raw_location_events_update_query(kwargs['execution_date']))
 
 
 with DAG(
@@ -50,9 +71,27 @@ with DAG(
         task_id="wait_of_location_events", external_dag_id="lab08_location_events", external_task_id="grab_s3_data",
     )
 
-    staging_update = PythonOperator(
-        task_id='raw_update',
-        python_callable=execute_sql_raw_raw_browser_events_update,
+    raw_browser_events_update = PythonOperator(
+        task_id='raw_browser_events_update',
+        python_callable=execute_sql_raw_browser_events_update,
+        provide_context=True,
+    )
+
+    raw_device_events_update = PythonOperator(
+        task_id='raw_device_events_update',
+        python_callable=execute_sql_raw_device_events_update,
+        provide_context=True,
+    )
+
+    raw_geo_events_update = PythonOperator(
+        task_id='raw_geo_events_update',
+        python_callable=execute_sql_raw_geo_events_update,
+        provide_context=True,
+    )
+
+    raw_location_events_update = PythonOperator(
+        task_id='raw_location_events_update',
+        python_callable=execute_sql_raw_location_events_update,
         provide_context=True,
     )
 
@@ -60,8 +99,7 @@ with DAG(
     wait_for_dependencies = EmptyOperator(task_id="wait_for_dependencies")
     completed = EmptyOperator(task_id="completed")
 
-    start >> wait_of_browser_events >> wait_for_dependencies
-    start >> wait_of_device_events >> wait_for_dependencies
-    start >> wait_of_geo_events >> wait_for_dependencies
-    start >> wait_of_location_events >> wait_for_dependencies
-    wait_for_dependencies >> staging_update >> completed
+    start >> wait_of_browser_events >> raw_browser_events_update >> completed
+    start >> wait_of_device_events >> raw_device_events_update >> completed
+    start >> wait_of_geo_events >> raw_geo_events_update >> completed
+    start >> wait_of_location_events >> raw_location_events_update >> completed
