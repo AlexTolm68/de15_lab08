@@ -12,11 +12,6 @@ import psycopg2
 
 DEFAULT_ARGS = {"owner": "lab08_team", "depends_on_past": True}
 
-# PG_USER = os.environ["POSTGRES_USER"]
-# PG_PASSWORD = os.environ["POSTGRES_PASSWORD"]
-# PG_DATABASE = os.environ["POSTGRES_DB"]
-#
-# CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_DATABASE}'  # 5432 внутри
 
 @dag(
     default_args=DEFAULT_ARGS,

@@ -66,7 +66,7 @@ def lab08_device_events():
                                     table_name=f'public.{subfile[:-6]}',
                                     connection=postgresql_conn,
                                     engine='adbc',
-                                    if_table_exists='append'
+                                    if_table_exists='replace'
                                 )
                             except:
                                 pl_json_df.write_database(
