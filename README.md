@@ -51,13 +51,13 @@ root@69562d622803:/usr/local/airflow#
 ## Добавить файлы Superset и файл docker-compose-non-dev.yml необходимо:
 
 В любой директории выполнить `git clone https://github.com/apache/superset`  
-Рекомендуем вам переключиться на стабильный релиз - например, на 4.1.1: `git checkout 4.1.1`
+Рекомендуем вам переключиться на стабильный релиз - например, на 4.1.1: `cd .\superset`, `git checkout 4.1.1`  
 Для того, чтобы Superset увидел нашу сеть, нужно скопировать в него подготовленный настроечный файл:
 `cp de15_lab08/superset_config/docker-compose-non-dev.yml superset/`
 
 Запуск Superset
 `docker compose -f superset/docker-compose-non-dev.yml up -d`
 
-Остановка docker-compose:   
-airflow&postgres `docker compose stop`
+Остановка docker-compose:  
+airflow&postgres `docker compose stop`  
 superset `docker compose -f superset/docker-compose-non-dev.yml stop`
