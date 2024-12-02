@@ -33,7 +33,7 @@ def buy_product_query(execution_date):
             FROM public.raw_location_events l
             LEFT OUTER JOIN public.raw_browser_events be ON l.event_id = be.event_id
             LEFT OUTER JOIN public.raw_device_events de ON be.click_id = de.click_id
-            WHERE date_trunc('hour', CAST(event_timestamp AS timestamp)) = '{execution_date}'  -- for jinja
+            WHERE date_trunc('hour', CAST(event_timestamp AS timestamp)) = '{execution_date}'
             ORDER BY event_timestamp),
             
           next_url_path_data AS (
