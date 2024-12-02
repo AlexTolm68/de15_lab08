@@ -5,7 +5,7 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.sensors.external_task import ExternalTaskSensor
-from dag_utils.staging_queries import create_stg_browser_events_table, staging_update_query
+from dag_utils.raw_queries import create_stg_browser_events_table, staging_update_query
 
 
 PG_USER = os.environ["POSTGRES_USER"]
@@ -28,7 +28,7 @@ def execute_sql_stg_table_update(**kwargs):
 
 
 with DAG(
-    dag_id='staging_layer',
+    dag_id='raw_layer',
     default_args=DEFAULT_ARGS,
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
@@ -49,7 +49,7 @@ with DAG(
     )
 
     staging_update = PythonOperator(
-        task_id='staging_update',
+        task_id='raw_update',
         python_callable=execute_sql_stg_table_update,
         provide_context=True,
     )

@@ -1,6 +1,6 @@
-def create_stg_browser_events_table():
+def create_raw_browser_events_table():
     return """
-            CREATE TABLE IF NOT EXISTS public.stg_browser_events
+            CREATE TABLE IF NOT EXISTS public.raw_browser_events
             (
               click_id           VARCHAR(40),
               event_id           VARCHAR(40),
@@ -13,15 +13,15 @@ def create_stg_browser_events_table():
             """
 
 
-def staging_update_query(execution_date):
+def raw_browser_events_update_query(execution_date):
     return f"""
             BEGIN;
         
-            DELETE FROM public.stg_browser_events
+            DELETE FROM public.raw_browser_events
             WHERE event_timestamp >= '{execution_date}'
                 AND event_timestamp < CAST('{execution_date}' AS timestamp) + INTERVAL '1' HOUR;
                 
-            INSERT INTO public.stg_browser_events
+            INSERT INTO public.raw_browser_events
             WITH
               data_truncate AS (
                 SELECT
