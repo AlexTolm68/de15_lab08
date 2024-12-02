@@ -5,8 +5,10 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.sensors.external_task import ExternalTaskSensor
-from dag_utils.raw_queries import create_stg_browser_events_table, staging_update_query
-
+from dag_utils.raw_queries import (
+    create_raw_browser_events_table,
+    raw_browser_events_update_query,
+)
 
 PG_USER = os.environ["POSTGRES_USER"]
 PG_PASSWORD = os.environ["POSTGRES_PASSWORD"]
@@ -22,9 +24,9 @@ def postgres_execute_query(query: str) -> None:
             cur.execute(query)
 
 
-def execute_sql_stg_table_update(**kwargs):
-    postgres_execute_query(create_stg_browser_events_table())
-    postgres_execute_query(staging_update_query(kwargs['execution_date']))
+def execute_sql_raw_raw_browser_events_update(**kwargs):
+    postgres_execute_query(create_raw_browser_events_table())
+    postgres_execute_query(raw_browser_events_update_query(kwargs['execution_date']))
 
 
 with DAG(
@@ -50,7 +52,7 @@ with DAG(
 
     staging_update = PythonOperator(
         task_id='raw_update',
-        python_callable=execute_sql_stg_table_update,
+        python_callable=execute_sql_raw_raw_browser_events_update,
         provide_context=True,
     )
 
