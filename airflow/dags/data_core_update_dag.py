@@ -48,4 +48,4 @@ with DAG(
     start = EmptyOperator(task_id="start")
     completed = EmptyOperator(task_id="completed")
 
-    start >> buy_product_update >> completed
+    start >> wait_of_raw_layer_dag >> buy_product_update >> completed
