@@ -10,14 +10,16 @@ services:
       - "5436:5432"
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
-
+    networks:
+      - caddy
 
   airflow-initdb:
     build: ./airflow
     depends_on:
       - postgres
     entrypoint: airflow db migrate && airflow connections create-default-connections
-
+    networks:
+      - caddy
 
   airflow-webserver:
     build: ./airflow
@@ -31,6 +33,8 @@ services:
     env_file:
       - env.cfg
     entrypoint: airflow webserver
+    networks:
+      - caddy
 
   airflow-scheduler:
     build: ./airflow
@@ -42,6 +46,8 @@ services:
     env_file:
       - env.cfg
     entrypoint: airflow scheduler
+    networks:
+      - caddy
 
   postgres-db:
     image: postgres:16-bookworm
@@ -100,8 +106,13 @@ services:
         limits:
           cpus: '1'
           memory: 4G
+    networks:
+      - caddy
+
+networks:
+  caddy:
+    name: caddy
+    driver: bridge
 
 volumes:
   de15_lab08-data:
-
-
