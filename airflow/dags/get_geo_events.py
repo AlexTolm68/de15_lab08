@@ -58,7 +58,7 @@ def lab08_geo_events():
                             decoded_json = jsonl_binary.decode('utf-8')
                             print(decoded_json)
                             print('polars time!')
-                            pl_json_df = pl.read_ndjson(io.StringIO(decoded_json))
+                            pl_json_df = pl.read_ndjson(io.StringIO(decoded_json)).with_columns(pl.lit(start).alias('data_partition_ts'))
                             print(pl_json_df)
                             print(f'writing df to postgres: public.{subfile[:-6]}')
                             try:
