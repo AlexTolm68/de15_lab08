@@ -6,3 +6,6 @@ clickhouse-driver
 airflow-clickhouse-plugin
 boto3
 polars
+adbc_driver_manager
+adbc-driver-postgresql
+pyarrow
