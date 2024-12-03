@@ -18,6 +18,7 @@ DEFAULT_ARGS = {"owner": "lab08_team", "depends_on_past": True}
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
     catchup=True,
+    max_active_runs=4,
 )
 def lab08_device_events():
     @task
