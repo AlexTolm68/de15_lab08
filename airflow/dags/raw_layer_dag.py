@@ -56,6 +56,7 @@ with DAG(
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
     catchup=True,
+    max_active_runs=4,
 ) as dag:
 
     wait_of_browser_events = ExternalTaskSensor(
@@ -98,7 +99,7 @@ with DAG(
     start = EmptyOperator(task_id="start")
     completed = EmptyOperator(task_id="completed")
 
-    start >> wait_of_browser_events >> raw_browser_events_update >> completed
-    start >> wait_of_device_events >> raw_device_events_update >> completed
-    start >> wait_of_geo_events >> raw_geo_events_update >> completed
-    start >> wait_of_location_events >> raw_location_events_update >> completed
+    start >> wait_of_device_events >> raw_device_events_update >> wait_of_browser_events
+    start >> wait_of_geo_events >> raw_geo_events_update >> wait_of_browser_events
+    start >> wait_of_location_events >> raw_location_events_update >> wait_of_browser_events
+    wait_of_browser_events >> raw_browser_events_update >> completed
