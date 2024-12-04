@@ -30,7 +30,6 @@ with DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
-    end_date=pendulum.datetime(2024, 11, 27),
     catchup=True,
 ) as dag:
  

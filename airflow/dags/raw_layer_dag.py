@@ -55,7 +55,7 @@ with DAG(
     default_args=DEFAULT_ARGS,
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
-    catchup=False,
+    catchup=True,
 ) as dag:
 
     wait_of_browser_events = ExternalTaskSensor(

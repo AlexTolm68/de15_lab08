@@ -29,6 +29,7 @@ def query_top10_page(execution_date):
         from public.core_buy_product_table
         where date_trunc('hour', cast(event_timestamp AS timestamp)) = '{execution_date}'
         group by date_trunc('hour', event_timestamp) , page_url_path
+        order By count_page_url_path DESC limit 10
         ) top
         
         ON CONFLICT (event_timestamp, page_url_path) DO UPDATE

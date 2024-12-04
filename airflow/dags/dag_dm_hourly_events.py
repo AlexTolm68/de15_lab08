@@ -5,7 +5,7 @@ from airflow import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.sensors.external_task import ExternalTaskSensor
-from dag_utils.query_dm_buy_product import create_buy_product_table, buy_product_query
+from dag_utils.query_dm_hourly_events import create_hourly_events_table, hourly_events_query
  
  
 PG_USER = os.environ["POSTGRES_USER"]
@@ -23,12 +23,12 @@ def postgres_execute_query(query: str) -> None:
  
  
 def execute_sql_buy_product_count(**context):
-    postgres_execute_query(create_buy_product_table())
-    postgres_execute_query(buy_product_query(context['execution_date']))
+    postgres_execute_query(create_hourly_events_table())
+    postgres_execute_query(hourly_events_query(context['execution_date']))
  
  
 with DAG(
-    dag_id='dm_buy_product',
+    dag_id='dm_hourly_events',
     default_args=DEFAULT_ARGS,
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
@@ -40,7 +40,7 @@ with DAG(
     )
  
     buy_product_count = PythonOperator(
-        task_id='dm_buy_product_count',
+        task_id='dm_hourly_events',
         python_callable=execute_sql_buy_product_count,
         provide_context=True,
     )
