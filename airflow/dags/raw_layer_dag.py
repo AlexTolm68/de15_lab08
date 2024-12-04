@@ -19,13 +19,22 @@ from dag_utils.raw_queries import (
 PG_USER = os.environ["POSTGRES_USER"]
 PG_PASSWORD = os.environ["POSTGRES_PASSWORD"]
 PG_DATABASE = os.environ["POSTGRES_DB"]
-DEFAULT_ARGS = {"owner": "lab08_team"}
-
-CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_DATABASE}'  # 5432 внутри
+DEFAULT_ARGS = {
+    "owner": "lab08_team", 
+    "retries": 3, 
+    "retry_delay": pendulum.duration(minutes=1)
+}
 
 
 def postgres_execute_query(query: str) -> None:
-    with psycopg2.connect(CONNECTION_STRING) as conn:
+    with psycopg2.connect(
+        host='postgres-db', 
+        database=PG_DATABASE, 
+        user=PG_USER,
+        password=PG_PASSWORD,
+        # connect_timeout=120,
+        ) as conn:
+    # with psycopg2.connect(CONNECTION_STRING) as conn:
         with conn.cursor() as cur:
             cur.execute(query)
 
@@ -56,7 +65,7 @@ with DAG(
     schedule_interval="0 * * * *",
     start_date=pendulum.datetime(2024, 11, 15),
     catchup=True,
-    max_active_runs=4,
+    max_active_runs=1,
 ) as dag:
 
     wait_of_browser_events = ExternalTaskSensor(
@@ -99,7 +108,13 @@ with DAG(
     start = EmptyOperator(task_id="start")
     completed = EmptyOperator(task_id="completed")
 
-    start >> wait_of_device_events >> raw_device_events_update >> wait_of_browser_events
-    start >> wait_of_geo_events >> raw_geo_events_update >> wait_of_browser_events
-    start >> wait_of_location_events >> raw_location_events_update >> wait_of_browser_events
-    wait_of_browser_events >> raw_browser_events_update >> completed
+    # start >> wait_of_device_events >> raw_device_events_update >> wait_of_browser_events
+    # start >> wait_of_geo_events >> raw_geo_events_update >> wait_of_browser_events
+    # start >> wait_of_location_events >> raw_location_events_update >> wait_of_browser_events
+    # wait_of_browser_events >> raw_browser_events_update >> completed
+
+    start >> wait_of_device_events >> raw_device_events_update \
+        >> wait_of_geo_events >> raw_geo_events_update\
+        >> wait_of_location_events >> raw_location_events_update \
+        >> wait_of_browser_events >> raw_browser_events_update \
+        >> completed
