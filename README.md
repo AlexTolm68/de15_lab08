@@ -6,10 +6,12 @@
 3. Superset поднимается на порту 8088.  
 
 Airfolow последовательно запускает следующие даги:
-1. Забирает сырые данные с S3 в 4х тасках: get_browser_events, get_device_events, get_geo_events, get_location_events  
-2. ?????  
-3. Готовые витрины для вызовы из Superset лежат здесь: ???  
+1. Забирает данные с S3 в 4х тасках: get_browser_events, get_device_events, get_geo_events, get_location_events  
+2. Данные из S3 дедуплицируются, приводятся типы данных в даге raw_layer, формируются таблицы raw слоя
+3. Из raw слоя в даге data_core_update формируется промежуточная таблица для core слоя - core_buy_product_table
+4. Готовые витрины собираются как из raw, так и из core, для вызова из Superset лежат здесь: dm_buy_product, dm_hourly_events, dm_top10_page 
 
+![Scheme](scheme_dwh.png)
 
 ## Перед запуском
 Перед запуском проекта нужно указать учетные данные для доступа в yandex cloud в файле `env.cfg` :
