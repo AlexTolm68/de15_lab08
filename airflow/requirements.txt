@@ -1,9 +1,5 @@
 psycopg2-binary==2.9.9
 apache-airflow==2.9.2
-clickhouse-driver==0.2.8
-redis==5.0.7
-clickhouse-driver
-airflow-clickhouse-plugin
 boto3
 polars
 adbc_driver_manager
