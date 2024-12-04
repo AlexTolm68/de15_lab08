@@ -19,9 +19,11 @@ from dag_utils.raw_queries import (
 PG_USER = os.environ["POSTGRES_USER"]
 PG_PASSWORD = os.environ["POSTGRES_PASSWORD"]
 PG_DATABASE = os.environ["POSTGRES_DB"]
-DEFAULT_ARGS = {"owner": "lab08_team"}
-
-# CONNECTION_STRING = f'postgresql://{PG_USER}:{PG_PASSWORD}@postgres-db:5432/{PG_DATABASE}'  # 5432 внутри
+DEFAULT_ARGS = {
+    "owner": "lab08_team", 
+    "retries": 3, 
+    "retry_delay": pendulum.duration(minutes=1)
+}
 
 
 def postgres_execute_query(query: str) -> None:
