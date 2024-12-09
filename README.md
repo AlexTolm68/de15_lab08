@@ -64,4 +64,4 @@ root@69562d622803:/usr/local/airflow#
 airflow&postgres `docker compose stop`  
 superset `docker compose -f superset/docker-compose-non-dev.yml stop`
 
-Мы молодцы!
+Мы молодцы и еще раз молодцы!
